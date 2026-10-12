@@ -1,0 +1,7 @@
+{
+  "name": "NULLG - Zero Gravity Combustion & Hazard AI Engine",
+  "description": "NASA Space Apps Challenge microgravity aerospace combustion engineering & habitat fire hazard diagnostic AI grounded in SoFIE and Saffire research.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
