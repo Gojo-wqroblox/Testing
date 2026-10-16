@@ -1,6 +1,6 @@
 import React from 'react';
 import { sound } from '../utils/audioAlert';
-import { Volume2, VolumeX, ShieldAlert, Rocket, Flame, Orbit } from 'lucide-react';
+import { Volume2, VolumeX, ShieldAlert, Rocket, Flame, Orbit, Activity, BarChart3 } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: string;
@@ -145,6 +145,18 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
 
         <button
+          onClick={() => setActiveTab('physics-monitor')}
+          className={`px-4 py-2 border-b-2 font-medium flex items-center gap-2 whitespace-nowrap transition ${
+            activeTab === 'physics-monitor'
+              ? 'border-cyan-400 text-cyan-300 bg-cyan-950/20'
+              : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
+          }`}
+        >
+          <Activity className="w-4 h-4 text-cyan-400" />
+          <span>PhysicsMonitor (Recharts & Voice)</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('simulator')}
           className={`px-4 py-2 border-b-2 font-medium flex items-center gap-2 whitespace-nowrap transition ${
             activeTab === 'simulator'
@@ -178,6 +190,18 @@ export const Header: React.FC<HeaderProps> = ({
         >
           <span className="text-xs bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">NASA</span>
           <span>SoFIE & Saffire Archive</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('analytics')}
+          className={`px-4 py-2 border-b-2 font-medium flex items-center gap-2 whitespace-nowrap transition ${
+            activeTab === 'analytics'
+              ? 'border-cyan-400 text-cyan-300 bg-cyan-950/20'
+              : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4 text-cyan-400" />
+          <span>Mission Analytics</span>
         </button>
 
         <button

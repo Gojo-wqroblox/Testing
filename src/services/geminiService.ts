@@ -129,3 +129,33 @@ export async function runTelemetryAnalysis(
 
   return res.json();
 }
+
+export async function synthesizeSpeech(text: string, voice: string = 'Kore'): Promise<string> {
+  try {
+    const res = await fetch('/api/tts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, voice }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`TTS server responded with ${res.status}`);
+    }
+
+    const data = await res.json();
+    if (data.audioBase64) {
+      const binaryString = atob(data.audioBase64);
+      const len = binaryString.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: data.mimeType || 'audio/wav' });
+      return URL.createObjectURL(blob);
+    }
+    throw new Error('No audio data in response');
+  } catch (err) {
+    console.warn('Gemini TTS endpoint call failed:', err);
+    throw err;
+  }
+}

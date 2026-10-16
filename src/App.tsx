@@ -5,12 +5,14 @@ import { CombustionSimulator } from './components/CombustionSimulator';
 import { DropletDynamics } from './components/DropletDynamics';
 import { MissionsArchive } from './components/MissionsArchive';
 import { HazardMatrix } from './components/HazardMatrix';
+import { PhysicsMonitor } from './components/PhysicsMonitor';
+import { MissionAnalytics } from './components/MissionAnalytics';
 import { ScenarioPreset } from './types';
 import { fetchScenarios } from './services/geminiService';
 import { sound } from './utils/audioAlert';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<string>('chat');
+  const [activeTab, setActiveTab] = useState<string>('physics-monitor');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [hazardDetected, setHazardDetected] = useState<boolean>(false);
   const [gravityMode, setGravityMode] = useState<number>(0); // 0 = microgravity, 1 = earth
@@ -77,6 +79,14 @@ Evaluate flame morphology (Grashof Gr, Peclet Pe, Damköhler Da), oxygen diffusi
           />
         )}
 
+        {activeTab === 'physics-monitor' && (
+          <PhysicsMonitor
+            gravityMode={gravityMode}
+            hazardActive={hazardDetected}
+            onSendToChat={handleSendToChat}
+          />
+        )}
+
         {activeTab === 'simulator' && (
           <CombustionSimulator
             onSendToChat={handleSendToChat}
@@ -94,6 +104,10 @@ Evaluate flame morphology (Grashof Gr, Peclet Pe, Damköhler Da), oxygen diffusi
             scenarios={scenarios}
             onSelectScenario={handleSelectScenario}
           />
+        )}
+
+        {activeTab === 'analytics' && (
+          <MissionAnalytics />
         )}
 
         {activeTab === 'hazard' && (

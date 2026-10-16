@@ -305,6 +305,58 @@ Please structure your response with:
   }
 });
 
+// AI Voice Explanation TTS Endpoint (Gemini 3.8 Flash Lite TTS)
+app.post('/api/tts', async (req, res) => {
+  try {
+    const { text, voice } = req.body;
+    if (!text || typeof text !== 'string') {
+      return res.status(400).json({ error: 'Text string is required for voice synthesis.' });
+    }
+
+    const voiceName = voice || 'Kore'; // 'Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr'
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-3.8-flash-lite-tts',
+      contents: [
+        {
+          role: 'user',
+          parts: [
+            {
+              text,
+              speechMetadata: {
+                style: 'Clear, analytical, authoritative aerospace mission flight controller',
+              },
+            },
+          ],
+        },
+      ],
+      config: {
+        responseModalities: ['AUDIO'],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: { voiceName },
+          },
+        },
+      },
+    });
+
+    const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (!base64Audio) {
+      throw new Error('Gemini TTS returned no audio data');
+    }
+
+    return res.json({
+      audioBase64: base64Audio,
+      mimeType: 'audio/wav',
+    });
+  } catch (error: any) {
+    console.error('Gemini TTS Error:', error);
+    return res.status(500).json({
+      error: error?.message || 'Failed to synthesize aerospace voice explanation.',
+    });
+  }
+});
+
 // Vite mounting in dev / static in prod
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
