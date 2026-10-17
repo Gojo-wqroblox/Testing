@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import { sound } from '../utils/audioAlert';
 import { synthesizeSpeech } from '../services/geminiService';
+import { SafetyMeter } from './SafetyMeter';
 import {
   Activity,
   Volume2,
@@ -84,7 +85,8 @@ export const PhysicsMonitor: React.FC<{
   gravityMode: number;
   hazardActive: boolean;
   onSendToChat?: (query: string, context?: any) => void;
-}> = ({ gravityMode, hazardActive, onSendToChat }) => {
+  isSimpleMode?: boolean;
+}> = ({ gravityMode, hazardActive, onSendToChat, isSimpleMode = false }) => {
   // Real-time telemetry simulation stream
   const [dataStream, setDataStream] = useState<TelemetryPoint[]>([]);
   const [isLiveStreaming, setIsLiveStreaming] = useState(true);
@@ -158,37 +160,37 @@ export const PhysicsMonitor: React.FC<{
       type: 'O2_LOC_BREACH',
       metricName: 'Oxygen Concentration (O₂)',
       measuredValue: '12.8%',
-      thresholdLimit: 'LOC Limit: ≤ 13.0%',
+      thresholdLimit: 'Safe Limit: ≤ 13.0%',
       severity: 'CRITICAL',
       aiRationale:
-        'Limiting Oxygen Concentration (LOC) breached at 12.8%. In zero-g, stagnant combustion products suffocate the reaction zone without buoyant clearance, reducing Fickian oxidizer influx below radiative loss levels.',
-      sourceMissionRef: 'NASA SoFIE GEL-04 Run',
+        'Oxygen dropped below the safe threshold (12.8%). In zero gravity, trapped smoke and carbon dioxide form an invisible dome around the flame, choking off incoming fresh air until the fire starves and dies.',
+      sourceMissionRef: 'NASA SoFIE Space Fire Flight Test',
     },
     {
       id: 'log-seed-02',
       timestamp: 'T+00:34s [08:52:30 UTC]',
       flightTimeSec: 34,
       type: 'GRASHOF_JITTER',
-      metricName: 'Grashof Number (Gr)',
+      metricName: 'Air Disturbance / Spacecraft Motion',
       measuredValue: '0.064',
-      thresholdLimit: 'Quiescent Limit: ≤ 0.050',
+      thresholdLimit: 'Calm Zero-G Limit: ≤ 0.050',
       severity: 'WARNING',
       aiRationale:
-        'Orbital micro-acceleration jitter (Gr = 0.064) detected during ISS re-boost maneuver. Transient buoyancy distorts the spherical diffusion flame into an elongated ellipsoid, altering local soot agglomeration.',
-      sourceMissionRef: 'ISS CIR MDCA Flight Data',
+        'Spacecraft motion or astronaut movement nudged the air. Because space fire is normally a calm, round sphere, this gentle wobble pulls the flame into an oval shape and alters how heat escapes.',
+      sourceMissionRef: 'ISS Space Station Fire Sensor',
     },
     {
       id: 'log-seed-03',
       timestamp: 'T+00:52s [08:52:48 UTC]',
       flightTimeSec: 52,
       type: 'CO2_SUFFOCATION',
-      metricName: 'CO₂ Stagnation Blanket',
+      metricName: 'Trapped Smoke (CO₂) Cloud',
       measuredValue: '18,450 ppm',
-      thresholdLimit: 'Diffusion Barrier: ≥ 15,000 ppm',
+      thresholdLimit: 'Smoke Barrier: ≥ 15,000 ppm',
       severity: 'CRITICAL',
       aiRationale:
-        'Stefan blowing velocity (0.72 cm/s) unable to penetrate stagnant CO2 vapor layer. Radial diffusion impedance forces flame ball into sub-stoichiometric low-temperature cool-flame regime.',
-      sourceMissionRef: 'Saffire-II Flammability Run',
+        'Heavy smoke and burnt carbon dioxide have gathered around the burning fuel. The gas cannot float away on its own, creating a barrier that slows down incoming fresh air and cools down the fire.',
+      sourceMissionRef: 'NASA Saffire Spacecraft Run',
     },
   ]);
   const [sidebarFilter, setSidebarFilter] = useState<'ALL' | 'CRITICAL' | 'O2' | 'GRASHOF'>('ALL');
@@ -210,13 +212,13 @@ export const PhysicsMonitor: React.FC<{
         timestamp: `T+${String(nowTime).padStart(3, '0')}s [${new Date().toLocaleTimeString()}]`,
         flightTimeSec: nowTime,
         type: 'GRASHOF_JITTER',
-        metricName: 'Grashof Number (Gr)',
+        metricName: 'Air Disturbance / Spacecraft Motion',
         measuredValue: '0.078',
-        thresholdLimit: 'Orbital Limit: ≤ 0.050',
+        thresholdLimit: 'Calm Zero-G Limit: ≤ 0.050',
         severity: 'WARNING',
         aiRationale:
-          'Simulated g-jitter pulse (Gr = 0.078). Injected orbital acceleration perturbation breaks pure spherical symmetry. Isotropic diffusion shell is compressed along the acceleration vector, causing transient heat flux imbalance.',
-        sourceMissionRef: 'NASA SoFIE CIR Injection Test',
+          'Simulated spacecraft motion. A slight acceleration nudges the calm air, warping the spherical space flame and causing uneven cooling on one side.',
+        sourceMissionRef: 'NASA SoFIE Airflow Test',
       };
     } else if (type === 'o2') {
       newEntry = {
@@ -224,13 +226,13 @@ export const PhysicsMonitor: React.FC<{
         timestamp: `T+${String(nowTime).padStart(3, '0')}s [${new Date().toLocaleTimeString()}]`,
         flightTimeSec: nowTime,
         type: 'O2_LOC_BREACH',
-        metricName: 'Oxygen Fraction (O₂)',
+        metricName: 'Oxygen Level (O₂)',
         measuredValue: '12.4%',
-        thresholdLimit: 'LOC Limit: ≤ 13.0%',
+        thresholdLimit: 'Safe Limit: ≤ 13.0%',
         severity: 'CRITICAL',
         aiRationale:
-          'Simulated O2 depletion crossing LOC limit (12.4%). Stagnant boundary layer starvation observed. Radiative heat loss from soot and CO2 outpaces slow diffusion replenishment, inducing flame ball shrinkage and extinction.',
-        sourceMissionRef: 'Saffire Spacecraft Fire Protocol',
+          'Simulated oxygen drop (12.4%). Without rising air to whisk smoke away, the flame gets suffocated by trapped exhaust gas and starves for air, causing the fire to shrink and extinguish.',
+        sourceMissionRef: 'NASA Spacecraft Fire Protocol',
       };
     } else {
       newEntry = {
@@ -238,13 +240,13 @@ export const PhysicsMonitor: React.FC<{
         timestamp: `T+${String(nowTime).padStart(3, '0')}s [${new Date().toLocaleTimeString()}]`,
         flightTimeSec: nowTime,
         type: 'CO2_SUFFOCATION',
-        metricName: 'CO₂ Stagnation Blanket',
+        metricName: 'Trapped Smoke (CO₂) Cloud',
         measuredValue: '24,800 ppm',
-        thresholdLimit: 'Diffusion Limit: ≥ 15,000 ppm',
+        thresholdLimit: 'Smoke Limit: ≥ 15,000 ppm',
         severity: 'CRITICAL',
         aiRationale:
-          'Heavy combustion product stagnation envelope detected. Radial Stefan mass velocity is counterbalanced by diffusion stagnation, creating an impermeable barrier to ambient oxygen molecules.',
-        sourceMissionRef: 'ISS Columbus ECLSS Diagnostic',
+          'Thick cloud of burnt exhaust gas trapped around the flame. Because smoke does not rise in zero gravity, it forms a barrier that prevents fresh oxygen from reaching the fire.',
+        sourceMissionRef: 'Space Station Life Support Diagnostic',
       };
     }
 
@@ -332,12 +334,12 @@ export const PhysicsMonitor: React.FC<{
             timestamp: `T+${String(nowSec).padStart(3, '0')}s [${new Date().toLocaleTimeString()}]`,
             flightTimeSec: nowSec,
             type: 'GRASHOF_JITTER',
-            metricName: 'Grashof Number (Gr)',
+            metricName: 'Air Disturbance / Spacecraft Motion',
             measuredValue: gr.toFixed(3),
-            thresholdLimit: 'Orbital Limit: ≤ 0.050',
+            thresholdLimit: 'Calm Zero-G Limit: ≤ 0.050',
             severity: 'WARNING',
-            aiRationale: `Orbital g-jitter anomaly detected (Gr = ${gr.toFixed(3)} > 0.050). In microgravity, absence of buoyancy demands Gr → 0. Transient thruster acceleration or crew locomotion induces asymmetric convective shear across the spherical reaction boundary, triggering non-uniform flame cooling.`,
-            sourceMissionRef: 'NASA SoFIE CIR Flight Standard',
+            aiRationale: `Spacecraft motion detected (${gr.toFixed(3)}). In zero gravity, hot air shouldn't rise at all. Thruster firings or astronaut movements are nudging the air, warping the calm spherical flame and causing uneven cooling.`,
+            sourceMissionRef: 'NASA SoFIE Space Flight Standard',
           });
         } else if (g === 1 && gr > 140000 && nowSec - lastBreachTimeRef.current.grashof >= 12) {
           lastBreachTimeRef.current.grashof = nowSec;
@@ -346,11 +348,11 @@ export const PhysicsMonitor: React.FC<{
             timestamp: `T+${String(nowSec).padStart(3, '0')}s [${new Date().toLocaleTimeString()}]`,
             flightTimeSec: nowSec,
             type: 'BUOYANT_RUNAWAY',
-            metricName: 'Grashof Number (Gr)',
+            metricName: 'Earth Rising Air Current',
             measuredValue: `${Math.round(gr)}`,
-            thresholdLimit: 'Turbulent Boundary: ≤ 140,000',
+            thresholdLimit: 'Normal Updraft: ≤ 140,000',
             severity: 'WARNING',
-            aiRationale: `Terrestrial buoyant updraft acceleration (Gr = ${Math.round(gr)}). Strong density gradient β·ΔT generates high plume velocity, driving rapid soot agglomeration and laminar-to-turbulent shear transition.`,
+            aiRationale: `Strong Earth-gravity updraft detected (${Math.round(gr)}). Hot air is rushing upward like a chimney, feeding fresh oxygen to the flame and making it flicker yellow with soot.`,
             sourceMissionRef: 'Terrestrial Baseline Reference',
           });
         }
@@ -363,12 +365,12 @@ export const PhysicsMonitor: React.FC<{
             timestamp: `T+${String(nowSec).padStart(3, '0')}s [${new Date().toLocaleTimeString()}]`,
             flightTimeSec: nowSec,
             type: 'O2_LOC_BREACH',
-            metricName: 'Oxygen Fraction (O₂)',
+            metricName: 'Oxygen Level (O₂)',
             measuredValue: `${nextO2.toFixed(1)}%`,
-            thresholdLimit: 'Critical LOC Limit: ≤ 13.0%',
+            thresholdLimit: 'Safe Limit: ≤ 13.0%',
             severity: 'CRITICAL',
-            aiRationale: `Limiting Oxygen Concentration (LOC) breached at ${nextO2.toFixed(1)}%. Without buoyant updrafts to clear combustion exhaust, isotropic Fickian diffusion rate dO2/dt cannot supply stoichiometric oxidizer, causing chemical kinetic rate to drop below radiative quenching threshold.`,
-            sourceMissionRef: 'NASA Saffire Safety Standard',
+            aiRationale: `Oxygen dropped to a critical low (${nextO2.toFixed(1)}%). Without hot air rising to push smoke away, the flame is choking on its own trapped exhaust gases and running out of fresh air to stay lit.`,
+            sourceMissionRef: 'NASA Spacecraft Fire Safety Standard',
           });
         }
 
@@ -398,9 +400,17 @@ export const PhysicsMonitor: React.FC<{
 
     const explanationScript =
       customScript ||
-      `Aerospace Telemetry Assessment: At current time, Grashof number is recorded at ${
-        gravityMode === 0 ? 'zero point zero zero, verifying pure microgravity regime' : `${Math.round(grVal)}, indicating buoyant convection`
-      }. Oxygen concentration has decayed to ${o2Val} percent, while local carbon dioxide blanket accumulation has risen to ${co2Val} parts per million around the spherical reaction zone. Flame core temperature is ${tempVal} Kelvin. In zero gravity, absence of buoyant convection restricts oxidizer replenishment purely to Fickian molecular diffusion, promoting radiative cooling and spherical symmetry.`;
+      (isSimpleMode
+        ? `Here is your plain-English space fire briefing: We are monitoring a flame burning in ${
+            gravityMode === 0 ? 'zero gravity on a space station' : 'normal Earth gravity'
+          }. The air currently has ${o2Val.toFixed(1)} percent oxygen left. ${
+            gravityMode === 0
+              ? 'Because there is no gravity, hot air cannot rise. The flame forms a calm, glowing blue ball. Without fresh air blowing in, the fire traps itself in its own exhaust smoke and slowly puts itself out.'
+              : 'On Earth, hot air rises fast like a chimney, pulling fresh oxygen continuously into the flame so it flickers yellow and stays hot.'
+          } Current flame heat is approximately ${Math.round(tempVal - 273.15)} degrees Celsius.`
+        : `Aerospace Telemetry Assessment: At current time, Grashof air-rise value is recorded at ${
+            gravityMode === 0 ? 'zero point zero zero, verifying pure zero gravity' : `${Math.round(grVal)}, indicating active rising air`
+          }. Oxygen concentration has decayed to ${o2Val} percent, while local carbon dioxide smoke accumulation has risen to ${co2Val} parts per million around the spherical reaction zone. Flame core temperature is ${tempVal} Kelvin. In zero gravity, without rising air to blow exhaust away, fresh air only creeps in slowly from all directions, keeping the flame calm, spherical, and cool.`);
 
     setAudioTranscript(explanationScript);
 
@@ -503,14 +513,18 @@ export const PhysicsMonitor: React.FC<{
           <div className="flex items-center gap-2">
             <Activity className="w-5 h-5 text-cyan-400 animate-pulse" />
             <h2 className="font-bold text-sm text-white">
-              PhysicsMonitor // Real-Time Recharts Telemetry & Acoustic AI Synthesis
+              {isSimpleMode
+                ? 'PhysicsMonitor // Real-Time Fire Graphs & Voice Guide'
+                : 'PhysicsMonitor // Real-Time Recharts Telemetry & Acoustic AI Synthesis'}
             </h2>
             <span className="text-xs bg-cyan-950 text-cyan-300 border border-cyan-800 px-2 py-0.5 rounded font-mono">
-              Fickian Diffusion & Grashof Analysis
+              {isSimpleMode ? 'Plain-English Guide Active' : 'Space Airflow & Oxygen Monitor'}
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Tracking dynamic Grashof number fluctuations (Gr = g·β·ΔT·L³ / ν²) and exponential oxygen decay curves with Gemini 3.8 voice commentary.
+            {isSimpleMode
+              ? 'Watch how fire uses up oxygen and behaves when floating in space compared to on Earth, with AI voice explanations.'
+              : 'Tracking dynamic Grashof number fluctuations (Gr = g·β·ΔT·L³ / ν²) and exponential oxygen decay curves with Gemini 3.8 voice commentary.'}
           </p>
         </div>
 
@@ -574,6 +588,34 @@ export const PhysicsMonitor: React.FC<{
         onError={() => setIsSpeaking(false)}
         className="hidden"
       />
+
+      {/* Simple Mode Educational Guidance Card */}
+      {isSimpleMode && (
+        <div className="bg-gradient-to-r from-cyan-950/60 via-slate-900 to-blue-950/60 border border-cyan-800/80 rounded-xl p-4 font-sans text-xs shadow-lg space-y-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <h3 className="font-bold text-white text-sm">Beginner Quick Guide: What Are You Looking At?</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+              <span className="font-bold text-cyan-300 block mb-1">
+                1. "Grashof Number" (Does Hot Air Rise?)
+              </span>
+              <p className="text-slate-300 leading-relaxed text-[11px]">
+                On Earth, hot smoke rushes up fast (values in the thousands). In zero-gravity space, hot air has no "up" or "down", so this stays near <strong>0.00</strong>. If it jumps up in space, it means a rocket thruster or astronaut jumped!
+              </p>
+            </div>
+            <div className="bg-slate-950/80 p-3 rounded-lg border border-slate-800">
+              <span className="font-bold text-amber-300 block mb-1">
+                2. Oxygen Decay Curve (Fire Suffocation)
+              </span>
+              <p className="text-slate-300 leading-relaxed text-[11px]">
+                The green/amber line shows oxygen dropping as the fire drinks it up. Below <strong>13%</strong>, the fire will suffocate itself because without gravity to push smoke away, the exhaust traps the flame!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Navigation sub-tabs */}
       <div className="flex border-b border-slate-800 gap-4 text-xs font-mono">
@@ -712,7 +754,9 @@ export const PhysicsMonitor: React.FC<{
                       <span>Oxygen (O₂) Decay & CO₂ Stagnation Curves</span>
                     </h3>
                     <span className="text-[11px] text-slate-400">
-                      Fickian Molecular Diffusion Boundary Layer Depletion
+                      {isSimpleMode
+                        ? 'Oxygen Starvation & Trapped Smoke Cloud (How fire chokes in space)'
+                        : 'Oxygen Depletion & Smoke Trapping in Zero Gravity'}
                     </span>
                   </div>
                   <div className="text-right">
@@ -792,8 +836,10 @@ export const PhysicsMonitor: React.FC<{
                 </div>
 
                 <div className="flex justify-between text-[11px] text-slate-400 font-mono pt-1">
-                  <span>• Limiting Oxygen Concentration (LOC): ~13.0%</span>
-                  <span className="text-amber-300">Diffusion Flux: J = -D ∇C</span>
+                  <span>• Minimum Oxygen to Burn: ~13.0%</span>
+                  <span className="text-amber-300">
+                    {isSimpleMode ? 'Natural Air Mixing: Calm Spreading' : 'Gas Diffusion Flow (J = -D ∇C)'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -801,11 +847,15 @@ export const PhysicsMonitor: React.FC<{
             {/* Real-time Telemetry Data Strip */}
             <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-mono">
               <div>
-                <span className="text-slate-400 block">Stefan Mass Velocity:</span>
+                <span className="text-slate-400 block">
+                  {isSimpleMode ? 'Fuel Vapor Push Speed:' : 'Gas Flow Speed (Stefan Flow):'}
+                </span>
                 <span className="text-base font-bold text-cyan-300">
                   {dataStream[dataStream.length - 1]?.stefan_velocity.toFixed(2)} cm/s
                 </span>
-                <span className="text-[10px] text-slate-500 block">Outward blowing</span>
+                <span className="text-[10px] text-slate-500 block">
+                  {isSimpleMode ? 'Gas pushing outward from fuel' : 'Outward vapor flow'}
+                </span>
               </div>
 
               <div>
@@ -1270,64 +1320,64 @@ As the NULLG aerospace combustion engineer, perform a deep-dive diagnostic of th
               <button
                 onClick={() =>
                   explainWithVoice(
-                    'In zero gravity, buoyant convection is completely eliminated. Without hot air rising, flames do not form teardrops. Instead, isotropic molecular diffusion supplies oxygen from all angles, creating a perfectly spherical, dim blue flame glowing from OH* and CH* chemiluminescence.'
+                    'In zero gravity, hot air does not rise because there is no up or down. Without rising air to form a teardrop, fire forms a calm, glowing blue sphere. Fresh oxygen slowly creeps in evenly from all sides, and the fire burns much cooler than on Earth.'
                   )
                 }
                 className="text-left p-3 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-700/60 text-slate-300 hover:text-cyan-300 transition"
               >
                 <div className="font-bold text-white text-[11px] mb-1">
-                  1. Why are Zero-G Flames Dim & Spherical?
+                  1. Why are Space Flames Round and Blue?
                 </div>
                 <div className="text-[10px] text-slate-400">
-                  Explains absence of Grashof convection (Gr → 0) and radical chemiluminescence.
+                  Explains why fire forms a sphere without flickers when hot air doesn't rise.
                 </div>
               </button>
 
               <button
                 onClick={() =>
                   explainWithVoice(
-                    'In microgravity, liquids are dominated entirely by surface tension because the Bond number approaches zero. Free fuel does not puddle downward; it forms floating spheres and creeps across bulkheads via capillary wetting, presenting severe electrical ignition hazards.'
+                    'In space, liquids float as round balls instead of puddling downward on the floor. Liquid fuels cling to walls and wires, which can cause dangerous fires if they reach electrical switches.'
                   )
                 }
                 className="text-left p-3 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-700/60 text-slate-300 hover:text-cyan-300 transition"
               >
                 <div className="font-bold text-white text-[11px] mb-1">
-                  2. Fluid Dynamics: Surface Tension Dominance (Bo ≪ 1)
+                  2. How Floating Liquids Behave in Zero Gravity
                 </div>
                 <div className="text-[10px] text-slate-400">
-                  Reviews floating droplet coalescence and capillary migration near avionics.
+                  Explains why liquid fuel crawls along walls and floats into wires.
                 </div>
               </button>
 
               <button
                 onClick={() =>
                   explainWithVoice(
-                    'Saffire experiment data reveals that exploration atmospheres of thirty-four percent oxygen at eight point two psi significantly widen flammability boundaries, accelerating flame spread velocities across fabrics even at ultra-low convective airflows.'
+                    'NASA space fire tests showed that spacecraft cabins with higher oxygen levels make fabrics catch fire and spread much faster, even when ventilation fans are blowing very gently.'
                   )
                 }
                 className="text-left p-3 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-700/60 text-slate-300 hover:text-cyan-300 transition"
               >
                 <div className="font-bold text-white text-[11px] mb-1">
-                  3. Saffire Mission Exploration Atmosphere Hazard
+                  3. Spacecraft Fire Hazards in High-Oxygen Cabins
                 </div>
                 <div className="text-[10px] text-slate-400">
-                  Analyzes 34% O2 flammability at 8.2 psi for Artemis / Lunar Gateway.
+                  Explains how extra oxygen in space capsules makes materials burn rapidly.
                 </div>
               </button>
 
               <button
                 onClick={() =>
                   explainWithVoice(
-                    'As observed in NASA FLEX droplet experiments, warm visible flames often extinguish due to radiative heat loss, but continue burning in an invisible, quasi-steady cool-flame regime at approximately six hundred to eight hundred Kelvin.'
+                    'NASA experiments discovered that when a space flame appears to go out, it can sometimes keep burning as an invisible cool flame that human eyes cannot see, at about four hundred degrees Celsius.'
                   )
                 }
                 className="text-left p-3 rounded-lg bg-slate-900 border border-slate-800 hover:border-cyan-700/60 text-slate-300 hover:text-cyan-300 transition"
               >
                 <div className="font-bold text-white text-[11px] mb-1">
-                  4. FLEX Droplet Cool-Flame Phenomenon
+                  4. The Ghost "Cool Flame" That Keeps Burning Invisibly
                 </div>
                 <div className="text-[10px] text-slate-400">
-                  Explains second-stage low-temperature burning invisible to human eyes.
+                  Explains low-temperature burning that continues even after the visible flame vanishes.
                 </div>
               </button>
             </div>

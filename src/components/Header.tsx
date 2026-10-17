@@ -1,6 +1,16 @@
 import React from 'react';
 import { sound } from '../utils/audioAlert';
-import { Volume2, VolumeX, ShieldAlert, Rocket, Flame, Orbit, Activity, BarChart3 } from 'lucide-react';
+import {
+  Volume2,
+  VolumeX,
+  ShieldAlert,
+  Rocket,
+  Flame,
+  Orbit,
+  Activity,
+  BarChart3,
+  Sparkles,
+} from 'lucide-react';
 
 interface HeaderProps {
   activeTab: string;
@@ -10,6 +20,9 @@ interface HeaderProps {
   hazardDetected: boolean;
   gravityMode: number;
   setGravityMode: (g: number) => void;
+  isSimpleMode: boolean;
+  setIsSimpleMode: (v: boolean) => void;
+  onOpenTour?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -20,6 +33,9 @@ export const Header: React.FC<HeaderProps> = ({
   hazardDetected,
   gravityMode,
   setGravityMode,
+  isSimpleMode,
+  setIsSimpleMode,
+  onOpenTour,
 }) => {
   const toggleSound = () => {
     const next = !soundEnabled;
@@ -72,9 +88,53 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Status Indicators & Controls */}
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Beginner Guided Tour Button */}
+          {onOpenTour && (
+            <button
+              onClick={onOpenTour}
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-amber-600/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/50 text-amber-300 text-xs font-semibold flex items-center gap-1.5 transition shadow shadow-amber-950/40"
+              title="Start Interactive Guided Tour with Voice Narration"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+              <span>Beginner Tour (Voice)</span>
+            </button>
+          )}
+
+          {/* Simple Mode vs Expert Mode Switch */}
+          <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-md text-xs font-sans">
+            <button
+              onClick={() => {
+                setIsSimpleMode(true);
+                sound.playTelemetryPing();
+              }}
+              className={`px-2.5 py-0.5 rounded transition font-medium flex items-center gap-1 ${
+                isSimpleMode
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              🌱 Simple Mode
+            </button>
+            <button
+              onClick={() => {
+                setIsSimpleMode(false);
+                sound.playTelemetryPing();
+              }}
+              className={`px-2.5 py-0.5 rounded transition font-medium flex items-center gap-1 ${
+                !isSimpleMode
+                  ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+            >
+              ⚙️ Expert Mode
+            </button>
+          </div>
+
           {/* Gravity Pill Switcher */}
           <div className="flex items-center gap-1 bg-slate-900 border border-slate-800 p-1 rounded-md text-xs font-mono">
-            <span className="text-slate-500 text-[11px] px-1.5">ENVIRONMENT:</span>
+            <span className="text-slate-500 text-[11px] px-1.5">
+              {isSimpleMode ? 'GRAVITY:' : 'ENVIRONMENT:'}
+            </span>
             <button
               onClick={() => {
                 setGravityMode(0);
@@ -86,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              0.00g (Micro-G)
+              {isSimpleMode ? '0g (Space)' : '0.00g (Micro-G)'}
             </button>
             <button
               onClick={() => {
@@ -99,7 +159,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
-              1.00g (Earth)
+              {isSimpleMode ? '1g (Earth)' : '1.00g (Earth)'}
             </button>
           </div>
 
@@ -133,15 +193,15 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Navigation Tabs */}
       <div className="max-w-7xl mx-auto px-4 flex overflow-x-auto gap-2 border-t border-slate-900/80 pt-1 text-sm font-mono scrollbar-none">
         <button
-          onClick={() => setActiveTab('chat')}
+          onClick={() => setActiveTab('simulator')}
           className={`px-4 py-2 border-b-2 font-medium flex items-center gap-2 whitespace-nowrap transition ${
-            activeTab === 'chat'
+            activeTab === 'simulator'
               ? 'border-cyan-400 text-cyan-300 bg-cyan-950/20'
               : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
           }`}
         >
-          <Rocket className="w-4 h-4" />
-          <span>Gemini AI Engine & Chatbot</span>
+          <Flame className="w-4 h-4 text-cyan-400" />
+          <span>{isSimpleMode ? '1G vs 0G Flame Lab (Fuels)' : '1G vs 0G Flame Lab'}</span>
         </button>
 
         <button
@@ -153,19 +213,19 @@ export const Header: React.FC<HeaderProps> = ({
           }`}
         >
           <Activity className="w-4 h-4 text-cyan-400" />
-          <span>PhysicsMonitor (Recharts & Voice)</span>
+          <span>{isSimpleMode ? 'Live Fire Telemetry & Voice' : 'PhysicsMonitor (Recharts & Voice)'}</span>
         </button>
 
         <button
-          onClick={() => setActiveTab('simulator')}
+          onClick={() => setActiveTab('chat')}
           className={`px-4 py-2 border-b-2 font-medium flex items-center gap-2 whitespace-nowrap transition ${
-            activeTab === 'simulator'
+            activeTab === 'chat'
               ? 'border-cyan-400 text-cyan-300 bg-cyan-950/20'
               : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'
           }`}
         >
-          <Flame className="w-4 h-4" />
-          <span>1G vs 0G Flame Lab</span>
+          <Rocket className="w-4 h-4" />
+          <span>{isSimpleMode ? 'Ask AI (Beginner Guide)' : 'Gemini AI Engine & Chatbot'}</span>
         </button>
 
         <button
@@ -177,7 +237,7 @@ export const Header: React.FC<HeaderProps> = ({
           }`}
         >
           <Orbit className="w-4 h-4" />
-          <span>Surface Tension (Bo ≪ 1)</span>
+          <span>{isSimpleMode ? 'Floating Liquid & Fuel Balls' : 'Surface Tension (Bo ≪ 1)'}</span>
         </button>
 
         <button
@@ -189,7 +249,7 @@ export const Header: React.FC<HeaderProps> = ({
           }`}
         >
           <span className="text-xs bg-slate-800 px-1.5 py-0.5 rounded text-cyan-400">NASA</span>
-          <span>SoFIE & Saffire Archive</span>
+          <span>{isSimpleMode ? 'Real NASA Space Tests' : 'SoFIE & Saffire Archive'}</span>
         </button>
 
         <button
@@ -201,7 +261,7 @@ export const Header: React.FC<HeaderProps> = ({
           }`}
         >
           <BarChart3 className="w-4 h-4 text-cyan-400" />
-          <span>Mission Analytics</span>
+          <span>{isSimpleMode ? 'Safety Statistics' : 'Mission Analytics'}</span>
         </button>
 
         <button
@@ -213,7 +273,7 @@ export const Header: React.FC<HeaderProps> = ({
           }`}
         >
           <ShieldAlert className="w-4 h-4 text-red-400" />
-          <span>Habitat Hazard Monitor</span>
+          <span>{isSimpleMode ? 'Emergency Fire Alarm' : 'Habitat Hazard Monitor'}</span>
         </button>
       </div>
     </header>

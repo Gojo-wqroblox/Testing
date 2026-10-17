@@ -57,12 +57,13 @@ You can ask aerospace combustion questions below or inject real flight telemetry
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const quickPrompts = [
+    'Explain simply: Why is fire a round blue ball in space instead of a pointy flame?',
+    'How do Hydrogen and Methane gas flames behave differently without gravity?',
+    'What happens if an astronaut lights a match inside the space station?',
+    'Why does a space fire suffocate itself if there is no ventilation fan?',
     'Analyze stagnant oxygen pocket in ISS Columbus avionics rack',
-    'Compare SoFIE GEL PMMA flame spread vs 1g upward buoyant flame',
-    'Why do microgravity flames form dim blue spheres without smoke plumes?',
     'Evaluate Saffire-IV fabric burn rate at 34% O2 & 8.2 psi (Exploration Atmosphere)',
     'Assess fluid fuel leak: why surface tension (Bo ≪ 1) forms floating spheres',
-    'Explain the FLEX n-heptane cool-flame regime after warm-flame extinction',
   ];
 
   const scrollToBottom = () => {

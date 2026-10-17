@@ -7,15 +7,18 @@ import { MissionsArchive } from './components/MissionsArchive';
 import { HazardMatrix } from './components/HazardMatrix';
 import { PhysicsMonitor } from './components/PhysicsMonitor';
 import { MissionAnalytics } from './components/MissionAnalytics';
+import { BeginnerTourModal } from './components/BeginnerTourModal';
 import { ScenarioPreset } from './types';
 import { fetchScenarios } from './services/geminiService';
 import { sound } from './utils/audioAlert';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<string>('physics-monitor');
+  const [activeTab, setActiveTab] = useState<string>('simulator');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [hazardDetected, setHazardDetected] = useState<boolean>(false);
   const [gravityMode, setGravityMode] = useState<number>(0); // 0 = microgravity, 1 = earth
+  const [isSimpleMode, setIsSimpleMode] = useState<boolean>(true);
+  const [isTourOpen, setIsTourOpen] = useState<boolean>(false);
   const [scenarios, setScenarios] = useState<ScenarioPreset[]>([]);
   const [currentTelemetryContext, setCurrentTelemetryContext] = useState<any>(null);
 
@@ -67,6 +70,9 @@ Evaluate flame morphology (Grashof Gr, Peclet Pe, Damköhler Da), oxygen diffusi
         hazardDetected={hazardDetected}
         gravityMode={gravityMode}
         setGravityMode={setGravityMode}
+        isSimpleMode={isSimpleMode}
+        setIsSimpleMode={setIsSimpleMode}
+        onOpenTour={() => setIsTourOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -84,6 +90,7 @@ Evaluate flame morphology (Grashof Gr, Peclet Pe, Damköhler Da), oxygen diffusi
             gravityMode={gravityMode}
             hazardActive={hazardDetected}
             onSendToChat={handleSendToChat}
+            isSimpleMode={isSimpleMode}
           />
         )}
 
@@ -92,6 +99,7 @@ Evaluate flame morphology (Grashof Gr, Peclet Pe, Damköhler Da), oxygen diffusi
             onSendToChat={handleSendToChat}
             gravityMode={gravityMode}
             setGravityMode={setGravityMode}
+            isSimpleMode={isSimpleMode}
           />
         )}
 
@@ -107,7 +115,7 @@ Evaluate flame morphology (Grashof Gr, Peclet Pe, Damköhler Da), oxygen diffusi
         )}
 
         {activeTab === 'analytics' && (
-          <MissionAnalytics />
+          <MissionAnalytics isSimpleMode={isSimpleMode} />
         )}
 
         {activeTab === 'hazard' && (
@@ -121,6 +129,12 @@ Evaluate flame morphology (Grashof Gr, Peclet Pe, Damköhler Da), oxygen diffusi
         )}
       </main>
 
+      {/* Interactive Beginner Guided Tour Modal with AI Voice */}
+      <BeginnerTourModal
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+      />
+
       {/* Footer Bar with NASA Space Apps & Physics Citation */}
       <footer className="border-t border-slate-900 bg-slate-950/90 text-slate-500 text-xs py-3 px-4 font-mono">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
@@ -132,11 +146,23 @@ Evaluate flame morphology (Grashof Gr, Peclet Pe, Damköhler Da), oxygen diffusi
             <span>ISS CIR & Saffire Grounded</span>
           </div>
           <div className="flex items-center gap-3 text-[11px] text-slate-400">
-            <span>Grashof Gr → 0.00</span>
-            <span>•</span>
-            <span>Bond Bo ≪ 1 (Surface Tension Dominant)</span>
-            <span>•</span>
-            <span>Fickian Transport J = -D ∇C</span>
+            {isSimpleMode ? (
+              <>
+                <span>No Hot Air Rising</span>
+                <span>•</span>
+                <span>Floating Liquid Spheres</span>
+                <span>•</span>
+                <span>Calm Natural Air Mixing</span>
+              </>
+            ) : (
+              <>
+                <span>Zero Gravity Physics</span>
+                <span>•</span>
+                <span>Floating Liquids</span>
+                <span>•</span>
+                <span>Natural Gas Diffusion</span>
+              </>
+            )}
           </div>
         </div>
       </footer>

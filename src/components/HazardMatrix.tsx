@@ -25,7 +25,7 @@ export const HazardMatrix: React.FC<HazardMatrixProps> = ({ onSendToChat, onSimu
 
 Evaluate whether this condition triggers [SPACE HABITAT HAZARD DETECTED].
 Detail:
-1. Physical mechanism of unvented gas pocket accumulation in zero gravity (Fickian diffusion timescale vs reaction timescale).
+1. How dangerous gas pockets accumulate in zero gravity without airflow (hours to clear vs seconds on Earth).
 2. Risk of smolder-to-flame transition when cabin ventilation resumes.
 3. ECLSS emergency response procedure (ventilation isolation, N2 purge, depressurization curve).`;
 
@@ -79,7 +79,7 @@ Detail:
             Without gravity-driven buoyant plumes, dead-air zones behind avionics bays trap pyrolyzed gases and oxygen in stoichiometric ratios without dispersing.
           </p>
           <div className="text-[11px] text-slate-500 pt-1 font-mono">
-            <strong>Physics:</strong> Rayleigh Ra = 0. Pure Fickian diffusion timescale t ~ L²/D is dangerously slow (hours vs seconds).
+            <strong>Physics:</strong> In space, air does not move on its own. Trapped flammable gas takes hours to disperse instead of seconds.
           </div>
         </div>
 
@@ -230,7 +230,7 @@ Detail:
           </div>
 
           <div>
-            <label className="text-slate-400 block mb-1">Pyrolyzate / Wire Material:</label>
+            <label className="text-slate-400 block mb-1">Flammable Cable / Spacecraft Material:</label>
             <select
               value={fuelMaterial}
               onChange={(e) => setFuelMaterial(e.target.value)}
@@ -265,7 +265,7 @@ Detail:
             </span>
           </div>
           <span className="text-[11px] opacity-80">
-            Fickian Diffusion Time: ~{Math.round((pocketVolume * 100) / 0.22)} minutes to passive equilibrium
+            Natural Air Clearing Time: ~{Math.round((pocketVolume * 100) / 0.22)} minutes without fans
           </span>
         </div>
       </div>

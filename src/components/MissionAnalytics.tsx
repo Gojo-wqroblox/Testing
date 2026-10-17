@@ -91,7 +91,7 @@ const HISTORICAL_RUNS: HistoricalRun[] = [
   { id: 'ISS-HAB-04', name: 'Gateway Hab EVA Pre-Breathe', mission: 'Habitat_ECLSS', flightDate: '2023-08-30', fuel: 'Tefzel Cable Jacket', chamber: 'HALO Gateway Mockup', atmosphere: '34% O2, 8.2 psi', ventSpeed_ms: 0.03, extinctionRate_s_inv: 0.013, extinctionTime_s: 76.9, o2DepletionRate_pct_s: 0.175, extinctionMechanism: 'Fuel Burnout' },
 ];
 
-export const MissionAnalytics: React.FC = () => {
+export const MissionAnalytics: React.FC<{ isSimpleMode?: boolean }> = ({ isSimpleMode = false }) => {
   const [selectedMission, setSelectedMission] = useState<string>('ALL');
   const [metricMode, setMetricMode] = useState<'extinction' | 'o2_depletion' | 'combined'>('combined');
   const [displayType, setDisplayType] = useState<'histogram' | 'cumulative'>('cumulative');
@@ -407,9 +407,9 @@ Please explain:
         </div>
 
         <div className="bg-slate-950 border border-slate-800 p-3.5 rounded-xl">
-          <span className="text-slate-400 block">Mean O₂ Depletion Rate:</span>
+          <span className="text-slate-400 block">{isSimpleMode ? 'Air Burning Speed:' : 'Mean O₂ Depletion Rate:'}</span>
           <span className="text-lg font-bold text-emerald-400">-{stats.avgO2Depletion} %/s</span>
-          <span className="text-[10px] text-slate-500 block">Fickian Diffusive Flux</span>
+          <span className="text-[10px] text-slate-500 block">{isSimpleMode ? 'Natural Air Starvation Rate' : 'Oxygen Consumption Speed'}</span>
         </div>
       </div>
 
@@ -422,10 +422,16 @@ Please explain:
               <div>
                 <h3 className="font-bold text-sm text-cyan-300 flex items-center gap-2">
                   <Flame className="w-4 h-4 text-cyan-400" />
-                  <span>Cumulative Histogram: Flame Extinction Rates (s⁻¹)</span>
+                  <span>
+                    {isSimpleMode
+                      ? 'Flame Extinction Chart: How Fast Space Fires Die Out'
+                      : 'Cumulative Histogram: Flame Extinction Rates (s⁻¹)'}
+                  </span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Frequency of quenching rates (R_ext = 1/t_ext) with overlaid Cumulative Distribution Function (CDF 0% to 100%).
+                  {isSimpleMode
+                    ? 'Shows how quickly NASA space fires suffocate or burn out across real flight tests.'
+                    : 'Frequency of quenching rates (R_ext = 1/t_ext) with overlaid Cumulative Distribution Function (CDF 0% to 100%).'}
                 </p>
               </div>
               <span className="text-xs bg-slate-900 border border-slate-800 px-2.5 py-1 rounded text-cyan-400">
@@ -523,10 +529,16 @@ Please explain:
               <div>
                 <h3 className="font-bold text-sm text-emerald-300 flex items-center gap-2">
                   <TrendingDown className="w-4 h-4 text-emerald-400" />
-                  <span>Cumulative Histogram: Oxygen Depletion Rates (-d[O₂]/dt in %/s)</span>
+                  <span>
+                    {isSimpleMode
+                      ? 'Oxygen Burning Chart: How Fast Fires Consume Cabin Air'
+                      : 'Cumulative Histogram: Oxygen Depletion Rates (-d[O₂]/dt in %/s)'}
+                  </span>
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Distribution of oxidizer consumption speeds under varied atmospheric pressures and ventilation velocities.
+                  {isSimpleMode
+                    ? 'Shows how fast oxygen levels drop when materials catch fire in zero gravity.'
+                    : 'Distribution of oxidizer consumption speeds under varied atmospheric pressures and ventilation velocities.'}
                 </p>
               </div>
               <span className="text-xs bg-slate-900 border border-slate-800 px-2.5 py-1 rounded text-emerald-400">
